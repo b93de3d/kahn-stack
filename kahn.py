@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
-from typing import List
+import subprocess
+from typing import List, Union
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
@@ -9,18 +10,47 @@ VERSION_PATCH = 0
 
 VERSION = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}"
 
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+GRAY = "\033[90m"
+RESET = "\033[0m"
 
-def ERROR(msg: str):
-    print(f"ERROR :: {msg}")
+def ERROR(msg: str, **kwargs):
+    print(f"{RED}ERROR{RESET} :: {msg}", **kwargs)
 
 
-def TODO(msg: str):
-    print(f"TODO  :: {msg}")
+def TODO(msg: str, **kwargs):
+    print(f"{YELLOW}TODO{RESET}  :: {msg}", **kwargs)
 
 
-def USAGE(msg: str):
-    print(f"USAGE :: {msg}")
+def USAGE(msg: str, **kwargs):
+    print(f"{GREEN}USAGE{RESET} :: {msg}", **kwargs)
 
+
+def LOG(msg: str, **kwargs):
+    print(f"{GRAY}LOG{RESET}   :: {msg}", **kwargs)
+
+
+
+
+def run_shell(command: Union[List[str], str]):
+    shell = type(command) == str
+    if shell:
+        cmd_str = command
+    else:
+        cmd_str = " ".join(command)
+    print(f"{GREEN}-- kahn run | {YELLOW}{cmd_str}{GREEN} | --{RESET}")
+    process = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    for line in process.stdout:
+        LOG(line.decode(), end='')
+    error_output = process.stderr.read()
+    if error_output:
+        ERROR(error_output.decode(), end='')
+
+    exit_code = process.wait()
+    if exit_code != 0:
+        exit(exit_code)
 
 class Command:
 
@@ -79,12 +109,39 @@ class Version(Command):
     def exec(self, args, parents_str):
         print(f"Kahn Stack [{VERSION}]")
 
+class Ls(Command):
+
+    def exec(self, args, parents_str):
+        run_shell("ls")
+        run_shell(["ls", "-la"])
+        if "-e" in args:
+            run_shell("ls -la nonexistantdir")
+        run_shell("ls -la")
+
+
+class Rand(Command):
+
+    def exec(self, args, parents_str):
+        run_shell("tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 48")
+
+
+class Kamal(Command):
+
+    def exec(self, args, parents_str):
+        cmd = ["kamal", self.name] + args + ["-c", "config/ggg.yaml"]
+        run_shell(cmd)
+
 
 prog = Command(
     name="kahn",
     subcommands=[
         Version(name="version", subcommands=[]),
+        Ls(name="ls", subcommands=[]),
+        Rand(name="rand", subcommands=[]),
         Command(name="dev", subcommands=[]),
+        Kamal(name="deploy", subcommands=[]),
+        Kamal(name="setup", subcommands=[]),
+        Kamal(name="app", subcommands=[]),
         Command(name="instance", subcommands=[
             Command(name="add", subcommands=[]),
             Command(name="remove", subcommands=[]),
