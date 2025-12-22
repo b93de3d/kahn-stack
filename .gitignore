@@ -1,1 +1,4 @@
 .idea
+kahn_config.json
+.kamal/secrets
+.DS_STORE

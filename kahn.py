@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-
+import glob
+import json
 import sys
 import subprocess
 from typing import List, Union
@@ -16,6 +17,7 @@ YELLOW = "\033[33m"
 GRAY = "\033[90m"
 RESET = "\033[0m"
 
+
 def ERROR(msg: str, **kwargs):
     print(f"{RED}ERROR{RESET} :: {msg}", **kwargs)
 
@@ -30,8 +32,6 @@ def USAGE(msg: str, **kwargs):
 
 def LOG(msg: str, **kwargs):
     print(f"{GRAY}LOG{RESET}   :: {msg}", **kwargs)
-
-
 
 
 def run_shell(command: Union[List[str], str]):
@@ -51,6 +51,35 @@ def run_shell(command: Union[List[str], str]):
     exit_code = process.wait()
     if exit_code != 0:
         exit(exit_code)
+
+
+class Env:
+
+    def __init__(self):
+        # Try load from file, else prompt user to provide each value
+        try:
+            with open("kahn_config.json", "r") as f:
+                self.config = json.loads(f.read())
+        except FileNotFoundError:
+            self.config = {}
+            self._dump()
+
+    def _dump(self):
+        with open("kahn_config.json", "w") as f:
+            f.write(json.dumps(self.config))
+
+    def get(self, key):
+        value = self.config.get(key)
+        while value in ["", None]:
+            value = input(f"Provide a value for {key}:")
+            if value in ["", None]:
+                ERROR(f"Invalid value: `{value}`")
+                continue
+            self.config[key] = value
+            self._dump()
+
+        return value
+
 
 class Command:
 
@@ -109,6 +138,39 @@ class Version(Command):
     def exec(self, args, parents_str):
         print(f"Kahn Stack [{VERSION}]")
 
+
+class TemplateList(Command):
+
+    def exec(self, args, parents_str):
+        run_shell(["ls", "templates"])
+
+
+class TemplateDeploy(Command):
+
+    def exec(self, args, parents_str):
+        available_templates = glob.glob("templates/*")
+        for arg in args:
+            template_path = f"templates/{arg}"
+            if template_path not in available_templates:
+                ERROR(f"Template not found `{template_path}`")
+                USAGE(f"AVAILABLE TEMPLATES: {available_templates}")
+                exit(1)
+            print(f"DEPLOYING TEMPLATE: {arg}")
+            project_slug = ENV.get('Project Slug')
+            dest_path = f"{ENV.get('Short Name')}_core"
+            run_shell(f"cp -r {template_path} {dest_path}")
+            run_shell(
+                f"find {dest_path} -type f -exec "
+                f"sed -i 's/_KAHN_PROJECT_SLUG_/{project_slug}/g' {{}} +"
+            )
+            run_shell(
+                f"find {dest_path} -depth -name '*_KAHN_PROJECT_SLUG_*' "
+                f"-execdir rename '_KAHN_PROJECT_SLUG_' '{project_slug}' '{{}}' \;"
+            )
+            run_shell(f"cd {dest_path} && sh kahn_setup.sh")
+            run_shell(f"rm {dest_path}/kahn_setup.sh")
+
+
 class Ls(Command):
 
     def exec(self, args, parents_str):
@@ -136,6 +198,10 @@ prog = Command(
     name="kahn",
     subcommands=[
         Version(name="version", subcommands=[]),
+        Command(name="template", subcommands=[
+            TemplateList(name="list", subcommands=[]),
+            TemplateDeploy(name="deploy", subcommands=[]),
+        ]),
         Ls(name="ls", subcommands=[]),
         Rand(name="rand", subcommands=[]),
         Command(name="dev", subcommands=[]),
@@ -147,6 +213,8 @@ prog = Command(
             Command(name="remove", subcommands=[]),
         ]),
     ])
+
+ENV = Env()
 
 
 def main():

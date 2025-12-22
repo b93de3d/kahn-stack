@@ -1,0 +1,6 @@
+.idea
+venv
+**/migrations/0*.py
+*.sqlite3
+!prod_dummy.sqlite3
+__pycache__
