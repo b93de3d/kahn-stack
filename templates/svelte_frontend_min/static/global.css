@@ -1,0 +1,241 @@
+/* @font-face {
+  font-family: "Gael";
+  src: url("/IrishuncialfabetaBold.ttf");
+  font-weight: normal;
+  font-style: normal;
+} */
+
+@font-face {
+  font-family: "Iowan";
+  src: url("/iowanoldstyle_bold.otf") format("opentype");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* font-family: sans-serif; */
+  font-family: "Iowan", sans-serif;
+}
+
+:root {
+  --green-0: #e6ffee;
+  --green-1: #d3f9e0;
+  --green-2: #a8f2c0;
+  --green-3: #7aea9f;
+  --green-4: #54e382;
+  --green-5: #3bdf70;
+  --green-6: #2bdd66;
+  --green-7: #1bc455;
+  --green-8: #0bae4a;
+  --green-9: #00973c;
+  --red-0: #ffe8e9;
+  --red-1: #ffd1d1;
+  --red-2: #fba0a0;
+  --red-3: #f76d6d;
+  --red-4: #f44141;
+  --red-5: #f22625;
+  --red-6: #f21616;
+  --red-7: #d8070b;
+  --red-8: #c10007;
+  --red-9: #a90003;
+  --purple-0: #f2eafb;
+  --purple-1: #e5d5f8;
+  --purple-2: #d7c0f4;
+  --purple-3: #caabf0;
+  --purple-4: #bd97ed;
+  --purple-5: #b082e9;
+  --purple-6: #a36de5;
+  --purple-7: #9558e1;
+  --purple-8: #8843de;
+  --purple-9: #752ccf;
+  --dark-purple-0: #752ccf;
+  --dark-purple-1: #6927b9;
+  --dark-purple-2: #5c23a4;
+  --dark-purple-3: #501e8e;
+  --dark-purple-4: #441978;
+  --dark-purple-5: #371562;
+  --dark-purple-6: #2b104c;
+  --dark-purple-7: #1f0c37;
+  --dark-purple-8: #120721;
+  --dark-purple-9: #0c0516;
+  --spacing-xs: 2px;
+  --spacing-sm: 4px;
+  --spacing-md: 6px;
+  --spacing-lg: 8px;
+  --spacing-xl: 10px;
+  --font-size-button: 13px;
+  --font-xs: 10px;
+  --font-sm: 12px;
+  --font-md: 16px;
+  --font-lg: 19px;
+  --font-xl: 24px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --font-size-button: 13px;
+    --font-xs: 8px;
+    --font-sm: 10px;
+    --font-md: 14px;
+    --font-lg: 17px;
+    --font-xl: 22px;
+  }
+}
+
+* {
+  scrollbar-width: none;
+}
+
+body {
+  font-size: var(--font-md);
+  color: var(--purple-0);
+  background-color: var(--dark-purple-8);
+}
+
+a {
+  cursor: pointer;
+  color: var(--purple-5);
+  text-decoration: none;
+}
+
+a:visited {
+  color: var(--purple-5);
+}
+
+a:hover {
+  filter: brightness(1.15);
+  text-decoration: underline;
+}
+
+a:focus {
+  outline: none;
+  filter: brightness(1.15);
+  text-decoration: underline;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-md);
+  color: var(--purple-0);
+  background-color: var(--dark-purple-4);
+  border: var(--spacing-sm) outset var(--purple-9);
+  font-size: var(--font-size-button);
+  font-family: "Arial", sans-serif;
+  font-weight: bold;
+}
+
+button:hover {
+  filter: brightness(1.15);
+}
+button:disabled {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+button:focus {
+  outline: none;
+  border: var(--spacing-sm) outset var(--purple-3);
+}
+button.unstyled {
+  border: none;
+}
+
+input,
+textarea,
+select {
+  padding: var(--spacing-md);
+  font-size: 16px;
+  background-color: var(--dark-purple-8);
+  color: var(--purple-0);
+  border: var(--spacing-sm) inset var(--purple-9);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border: var(--spacing-sm) inset var(--purple-3);
+}
+
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: var(--dark-purple-4);
+}
+
+option {
+  padding: 40px;
+  font-size: 16px;
+  background-color: var(--dark-purple-8);
+  color: var(--purple-0);
+}
+
+.navButton {
+  color: var(--purple-0) !important;
+  background-color: var(--dark-purple-4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none !important;
+  border: var(--spacing-sm) outset var(--purple-9);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-button);
+}
+.navButton.active {
+  color: var(--dark-purple-9);
+  background-color: var(--purple-5);
+}
+
+.draggable-source--is-dragging {
+  opacity: 0.3;
+}
+
+.draggable-mirror {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--purple-5);
+  color: var(--dark-purple-8);
+}
+
+::-webkit-selection {
+  background: var(--purple-5);
+  color: var(--dark-purple-8);
+}
+
+.startstop {
+  height: 40px;
+  width: 40px;
+  font-size: large;
+  line-height: 0;
+}
+.start:hover {
+  color: var(--green-0);
+  background-color: var(--green-8);
+  border: var(--spacing-xs) outset var(--green-5);
+}
+.stop {
+  color: var(--red-9);
+  background-color: var(--red-2);
+  border: var(--spacing-xs) outset var(--red-7);
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  background-color: var(--purple-2);
+  cursor: pointer;
+}
+
+.handle {
+  font-size: 20px;
+}
+
+.oneline {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
