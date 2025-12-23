@@ -29,5 +29,24 @@ Deployment
 ## Quickstart
 
 ```sh
-sh kahn init myproject
+git clone git@github.com:b93de3d/kahn-stack.git myproject
+python kahn.py template deploy django_backend
 ```
+
+The `templates` directory contains starter templates for various project components:
+
+- `django_backend` the core system [REQUIRED]
+- `svelte_frontend_min` a minimal svelte + sveltekit frontend
+- etc.
+
+Each component exposes a `kahn_setup.sh` script that is run once after the template has been copied into place
+
+- Install dependencies (pip install, yarn install etc.)
+- Put in place config files (config.json, .env.development etc.)
+- Run migrations or any other setup scripts
+
+Each component is also going to need to include a snippet for inclusion in the main Dockerfile for the project
+
+Each component will need to include information about how it is run by kamal
+
+A single file that captures all of this might be a good idea

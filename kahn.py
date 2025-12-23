@@ -45,12 +45,72 @@ def run_shell(command: Union[List[str], str]):
     for line in process.stdout:
         LOG(line.decode(), end='')
     error_output = process.stderr.read()
-    if error_output:
-        ERROR(error_output.decode(), end='')
 
     exit_code = process.wait()
     if exit_code != 0:
+        if error_output:
+            ERROR(error_output.decode(), end='')
         exit(exit_code)
+
+
+def replace_in_all_files_and_filepaths(path: str, find: str, replace: str):
+    run_shell(
+        f"find {path} -type f -exec "
+        f"sed -i 's/{find}/{replace}/g' {{}} +"
+    )
+    run_shell(
+        f"find {path} -depth -name '*{find}*' "
+        f"-execdir rename '{find}' '{replace}' '{{}}' \;"
+    )
+
+
+REPLACE_PATTERNS = [
+    ("_KAHN_PROJECT_TITLE_", lambda: ENV.get("Project Title")),
+    ("_KAHN_PROJECT_SLUG_", lambda: ENV.get("Project Slug")),
+    ("_KAHN_SHORT_NAME_", lambda: ENV.get("Short Name")),
+]
+
+
+class Component:
+
+    def __init__(self, template_path):
+        self.template_path = template_path
+        with open(f"{template_path}/kahn_component.md") as f:
+            md_lines = []
+            for line in f.readlines():
+                for replace_str, getter in REPLACE_PATTERNS:
+                    line = line.replace(replace_str, getter())
+                md_lines.append(line)
+            self.md_lines = md_lines
+
+        self.title = self._get_section_lines("kahn_component_title")[0]
+        self.slug = self._get_section_lines("kahn_component_slug")[0]
+        self.setup_lines = self._get_section_lines("kahn_setup")
+        self.run_dev_lines = self._get_section_lines("kahn_run_dev")
+
+    def _get_section_lines(self, section_title) -> List[str]:
+        section_start = -1
+        for i in range(len(self.md_lines)):
+            line = self.md_lines[i].strip()
+            if line == f"# {section_title}":
+                section_start = i + 1
+                break
+            i += 1
+
+        if section_start < 0:
+            ERROR(f"Section not found in kahn_component.md: `{section_title}`")
+            exit(1)
+
+        section_lines = []
+        for i in range(section_start, len(self.md_lines)):
+            line = self.md_lines[i].strip()
+            if line == "```":
+                break
+            if line == "":
+                continue
+            section_lines.append(line)
+
+        return section_lines
 
 
 class Env:
@@ -66,12 +126,15 @@ class Env:
 
     def _dump(self):
         with open("kahn_config.json", "w") as f:
-            f.write(json.dumps(self.config))
+            f.write(json.dumps(self.config, indent=4))
 
-    def get(self, key):
+    def get(self, key, default=None):
         value = self.config.get(key)
         while value in ["", None]:
-            value = input(f"Provide a value for {key}:")
+            if default:
+                value = input(f"Provide a value for {key} ({default}): ") or default
+            else:
+                value = input(f"Provide a value for {key}: ")
             if value in ["", None]:
                 ERROR(f"Invalid value: `{value}`")
                 continue
@@ -155,20 +218,46 @@ class TemplateDeploy(Command):
                 ERROR(f"Template not found `{template_path}`")
                 USAGE(f"AVAILABLE TEMPLATES: {available_templates}")
                 exit(1)
+
+
             print(f"DEPLOYING TEMPLATE: {arg}")
-            project_slug = ENV.get('Project Slug')
-            dest_path = f"{ENV.get('Short Name')}_core"
+            project_title = ENV.get('Project Title')
+            project_slug = ENV.get('Project Slug', project_title.replace(" ", "_").lower())
+            ENV.get('Short Name', "".join(p[0] for p in project_slug.split("_") if len(p) > 0))
+
+            component = Component(template_path)
+            dest_path = ENV.get(f"{component.title} Folder Name", component.slug)
+
             run_shell(f"cp -r {template_path} {dest_path}")
-            run_shell(
-                f"find {dest_path} -type f -exec "
-                f"sed -i 's/_KAHN_PROJECT_SLUG_/{project_slug}/g' {{}} +"
-            )
-            run_shell(
-                f"find {dest_path} -depth -name '*_KAHN_PROJECT_SLUG_*' "
-                f"-execdir rename '_KAHN_PROJECT_SLUG_' '{project_slug}' '{{}}' \;"
-            )
+
+            for replace_string, getter in REPLACE_PATTERNS:
+                replace_in_all_files_and_filepaths(dest_path, replace_string, getter())
+
+            with open(f"{dest_path}/kahn_setup.sh", "w") as f:
+                f.writelines([f"{l}\n" for l in component.setup_lines])
             run_shell(f"cd {dest_path} && sh kahn_setup.sh")
             run_shell(f"rm {dest_path}/kahn_setup.sh")
+
+            for line in component.run_dev_lines:
+                USAGE("Run using:")
+                USAGE(line)
+
+
+class ComponentList(Command):
+
+    def exec(self, args, parents_str):
+        component_mds = glob.glob("**/kahn_component.md", recursive=True)
+        for md_path in component_mds:
+            if not md_path.startswith("templates/"):
+                component_path = md_path[:-len("/kahn_component.md")]
+                component = Component(component_path)
+                print("[COMPONENT]")
+                print(component.title)
+                print(f"[TO RUN]")
+                print(f"> cd {component_path}")
+                for line in component.run_dev_lines:
+                    print(f"> {line}")
+                print("-----------------------------")
 
 
 class Ls(Command):
@@ -201,6 +290,9 @@ prog = Command(
         Command(name="template", subcommands=[
             TemplateList(name="list", subcommands=[]),
             TemplateDeploy(name="deploy", subcommands=[]),
+        ]),
+        Command(name="component", subcommands=[
+            ComponentList(name="list", subcommands=[]),
         ]),
         Ls(name="ls", subcommands=[]),
         Rand(name="rand", subcommands=[]),
