@@ -28,16 +28,25 @@ Deployment
 
 ## Quickstart
 
-```sh
-curl -LO https://github.com/b93de3d/kahn-stack/blob/master/bootstrap.sh
+```shell
+curl -LO https://raw.githubusercontent.com/b93de3d/kahn-stack/refs/heads/master/bootstrap.sh
 sh bootstrap.sh myproject
 cd myproject
-kahn version
+./kahn version
 ```
+
+## Quality of life
+
+```shell
+# Make run_kahn.sh executable globally as `kahn`
+cp run_kahn.sh ~/.local/bin/kahn
+chmod +x ~/.local/bin/kahn
+```
+
 
 The `templates` directory contains starter templates for various project components:
 
-- `django_backend` the core system [REQUIRED]
+- `django_backend` the core system
 - `svelte_frontend_min` a minimal svelte + sveltekit frontend
 - etc.
 
