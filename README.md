@@ -30,7 +30,8 @@ Deployment
 
 ```sh
 git clone git@github.com:b93de3d/kahn-stack.git myproject
-python kahn.py template deploy django_backend
+python kahn.py template list
+python kahn.py template deploy django_backend svelte_frontend_min
 ```
 
 The `templates` directory contains starter templates for various project components:
