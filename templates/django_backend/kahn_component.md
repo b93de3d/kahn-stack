@@ -15,7 +15,7 @@ source venv/bin/activate
 
 pip install -r requirements.txt
 
-sudo cp example_config.json /etc/_KAHN_PROJECT_SLUG_.json
+cp example_config.json _KAHN_PROJECT_SLUG_.json
 
 python manage.py makemigrations
 python manage.py migrate

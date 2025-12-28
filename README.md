@@ -29,9 +29,10 @@ Deployment
 ## Quickstart
 
 ```sh
-git clone git@github.com:b93de3d/kahn-stack.git myproject
-python kahn.py template list
-python kahn.py template deploy django_backend svelte_frontend_min
+curl -LO https://github.com/b93de3d/kahn-stack/blob/master/bootstrap.sh
+sh bootstrap.sh myproject
+cd myproject
+kahn version
 ```
 
 The `templates` directory contains starter templates for various project components:
@@ -51,3 +52,5 @@ Each component is also going to need to include a snippet for inclusion in the m
 Each component will need to include information about how it is run by kamal
 
 A single file that captures all of this might be a good idea
+
+

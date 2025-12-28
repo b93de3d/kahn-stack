@@ -10,7 +10,7 @@ PROJECT_ROOT = BASE_DIR.parent
 MIGRATE_PROD = os.getenv("MIGRATE_PROD", "FALSE").upper() == "TRUE"
 GIT_VERSION = os.getenv("KAMAL_VERSION", "NONE")
 
-CONFIG_PATH = "/etc/_KAHN_PROJECT_SLUG_.json"
+CONFIG_PATH = "_KAHN_PROJECT_SLUG_.json"
 with open(CONFIG_PATH) as f:
     CONFIG = json.loads(f.read())
     print(f"Loaded config from {CONFIG_PATH}")
